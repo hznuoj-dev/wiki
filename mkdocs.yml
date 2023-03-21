@@ -164,3 +164,6 @@ docs_dir: docs
 
 nav:
   - Getting Started: index.md
+  - DOMjudge:
+      - Getting Started: domjudge/index.md
+      - Programming Environment: domjudge/programming-environment.md
