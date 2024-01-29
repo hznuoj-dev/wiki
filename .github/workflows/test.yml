@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://json-schema.org/draft-07/schema#
-name: Build Doc
+name: Test
 
 on:
   push:
@@ -10,38 +10,44 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  node_version: "18"
+  python_version: "3.10"
+
 jobs:
-  build-doc:
+  test:
     name: Build documentation
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Python runtime
         uses: actions/setup-python@v3
         with:
-          python-version: 3.9
+          python-version: "${{ env.python_version }}"
 
       - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
 
       - uses: pnpm/action-setup@v2
-        with:
-          version: latest
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: "${{ env.node_version }}"
           cache: pnpm
 
       - name: Install Node dependencies
         run: |
           pnpm i
+
+      - name: Lint
+        run: |
+          pnpm lint
 
       - name: Build
         env:
@@ -49,14 +55,3 @@ jobs:
           ENABLE_MATHJAX: false
         run: |
           pnpm build
-
-      - name: Deploy to gh-pages
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: site
-          force_orphan: true
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
-          commit_message: 🚀 Deploying to gh-pages @ ${{ env.GITHUB_SHA }}
