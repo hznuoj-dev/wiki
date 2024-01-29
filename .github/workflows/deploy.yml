@@ -7,33 +7,36 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  node_version: "18"
+  python_version: "3.10"
+  deploy_script_version: "v0.0.4"
+
 jobs:
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Set up Python runtime
         uses: actions/setup-python@v3
         with:
-          python-version: 3.9
+          python-version: "${{ env.python_version }}"
 
       - name: Install Python dependencies
         run: |
           pip install -r requirements.txt
 
       - uses: pnpm/action-setup@v2
-        with:
-          version: latest
 
       - name: Set up Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: "${{ env.node_version }}"
           cache: pnpm
 
       - name: Install Node dependencies
@@ -66,6 +69,8 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd /var/docker-data/nginx/www
-            rm -rf wiki
-            git clone https://github.dup4.com/hznuoj-dev/wiki.git -b deploy-pages --depth=1
+            bash <(curl -s -L https://raw-github.dup4.com/Dup4/bash-script-snippet/${{ env.deploy_script_version }}/deploy_gh_pages.sh) \
+            -r hznuoj-dev/wiki \
+            -d /var/docker-data/nginx/www \
+            -b gh-pages \
+            -p github.dup4.com
